@@ -1,8 +1,8 @@
-# Lightbender Log Visualizer
+# LightBender Log Visualizer
 
 ## Overview
 
-This project is a web-based tool for visualizing flight log data from the Lightbender drone swarm. It allows users to plot sensor data, view video feeds, and analyze flight performance.
+This project is a web-based tool for visualizing flight log data from the LightBender drone swarm. It allows users to plot sensor data, view video feeds, and analyze flight performance.
 
 ![UI of the log visualizer](img/ui.png)
 
