@@ -4,6 +4,8 @@
 
 This project is a web-based tool for visualizing flight log data from the Lightbender drone swarm. It allows users to plot sensor data, view video feeds, and analyze flight performance.
 
+![UI of the log visualizer](img/ui.png)
+
 ## Features
 
 - **Interactive Plotting**: View and analyze drone telemetry data with dynamic zooming and panning
