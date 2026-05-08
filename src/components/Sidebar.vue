@@ -1,16 +1,28 @@
 <template>
-  <div class="h-full flex flex-col p-4 bg-gray-800/80 backdrop-blur-md border-r border-gray-700/50 text-sm overflow-hidden">
-    <div class="mb-6 space-y-2">
+  <div class="h-full flex flex-col p-4 bg-zinc-950/10 text-sm overflow-hidden">
+    
+    <div class="flex items-center space-x-3 mb-6 px-2 shrink-0">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-teal-500/30 shrink-0">
+        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-zinc-100 to-zinc-400 truncate">
+        Log Visualizer
+      </h1>
+    </div>
+
+    <div class="mb-6 space-y-2 shrink-0">
       <button 
         @click="loadDirectory" 
-        class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white font-medium transition-colors shadow-lg shadow-indigo-900/50"
+        class="w-full py-2 px-4 bg-teal-600 hover:bg-teal-500 rounded-lg text-white font-medium transition-colors shadow-lg shadow-teal-900/50"
       >
         Browse Log Directory
       </button>
       <button 
         v-if="store.selectedParams.length > 0"
         @click="store.clearSelectedParams()" 
-        class="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-medium transition-colors border border-gray-600"
+        class="w-full py-2 px-4 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-white font-medium transition-colors border border-zinc-600"
       >
         Clear Plot
       </button>
@@ -20,19 +32,19 @@
 
       <!-- Videos Section -->
       <div v-if="store.videos.length > 1">
-        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Select Video</h3>
+        <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Select Video</h3>
         <div class="space-y-1 mb-6">
           <label 
             v-for="video in store.videos" 
             :key="video.name"
-            class="flex items-center space-x-2 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-700/50 text-gray-300"
+            class="flex items-center space-x-2 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-zinc-700/50 text-zinc-300"
           >
             <input 
               type="radio" 
               name="videoSelection"
               :checked="store.selectedVideo?.name === video.name"
               @change="store.selectedVideo = video"
-              class="rounded-full bg-gray-900 border-gray-600 text-indigo-500 focus:ring-indigo-500/50"
+              class="rounded-full bg-zinc-900 border-zinc-600 text-teal-500 focus:ring-teal-500/50"
             />
             <span class="truncate">{{ video.name }}</span>
           </label>
@@ -42,7 +54,7 @@
       <!-- Drones Section -->
       <div v-if="Object.keys(store.drones).length > 0">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Drones</h3>
+          <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Drones</h3>
         </div>
         
         <!-- Search Input -->
@@ -51,36 +63,36 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search parameters..."
-            class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+            class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
           />
         </div>
         
         <div v-for="(drone, droneId) in filteredDrones" :key="droneId" class="mb-4">
           <div 
-            class="px-3 py-2 bg-gray-700/50 rounded-lg flex justify-between items-center cursor-pointer select-none mb-1"
+            class="px-3 py-2 bg-zinc-700/50 rounded-lg flex justify-between items-center cursor-pointer select-none mb-1"
             @click="toggleDrone(droneId)"
           >
-            <span class="font-medium text-gray-200">{{ droneId }}</span>
-            <span class="text-gray-400 text-xs">{{ expanded[droneId] ? '▼' : '▶' }}</span>
+            <span class="font-medium text-zinc-200">{{ droneId }}</span>
+            <span class="text-zinc-400 text-xs">{{ expanded[droneId] ? '▼' : '▶' }}</span>
           </div>
           
           <div v-show="expanded[droneId]" class="pl-4 space-y-4 mt-2">
             <!-- Group parameters by their root group (e.g., cf_CTRL_ATT_RATE) -->
             <div v-for="(params, groupName) in groupedParams(drone.parameters)" :key="groupName">
-              <div class="text-xs font-medium text-gray-500 mb-1">{{ groupName }}</div>
+              <div class="text-xs font-medium text-zinc-500 mb-1">{{ groupName }}</div>
               <div class="space-y-1">
                 <label 
                   v-for="param in params" 
                   :key="param.fullId"
-                  class="flex items-center space-x-2 text-gray-300 hover:text-white cursor-pointer py-1"
+                  class="flex items-center space-x-2 text-zinc-300 hover:text-white cursor-pointer py-1"
                 >
                   <input 
                     type="checkbox" 
                     :checked="store.isParamSelected(droneId, param.fullId)"
                     @change="store.toggleParam(droneId, param.fullId)"
-                    class="rounded bg-gray-900 border-gray-600 text-indigo-500 focus:ring-indigo-500/50"
+                    class="rounded bg-zinc-900 border-zinc-600 text-teal-500 focus:ring-teal-500/50"
                   />
-                  <span class="truncate" :title="param.name">{{ param.name }} <span class="text-gray-500 text-[10px]" v-if="param.unit">[{{ param.unit }}]</span></span>
+                  <span class="truncate" :title="param.name">{{ param.name }} <span class="text-zinc-500 text-[10px]" v-if="param.unit">[{{ param.unit }}]</span></span>
                 </label>
               </div>
             </div>

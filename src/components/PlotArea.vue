@@ -1,6 +1,6 @@
 <template>
-  <div class="h-full w-full bg-gray-800/80 backdrop-blur-md rounded-xl border border-gray-700/50 shadow-xl overflow-hidden flex flex-col p-2">
-    <div v-if="store.selectedParams.length === 0" class="flex-1 flex items-center justify-center text-gray-500">
+  <div class="h-full w-full overflow-hidden flex flex-col p-2">
+    <div v-if="store.selectedParams.length === 0" class="flex-1 flex items-center justify-center text-zinc-500">
       Select parameters from the sidebar to visualize data.
     </div>
     <v-chart 

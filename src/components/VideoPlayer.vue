@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full w-full flex flex-col bg-black rounded-xl overflow-hidden border border-gray-700/50 shadow-2xl relative">
+  <div class="h-full w-full flex flex-col bg-black rounded-xl overflow-hidden border border-zinc-700/50 shadow-2xl relative">
     <video 
       ref="videoPlayer"
       class="w-full h-full object-contain"

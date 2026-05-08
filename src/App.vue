@@ -1,23 +1,41 @@
 <template>
-  <div class="h-screen w-screen bg-gray-900 text-gray-100 flex flex-col font-sans overflow-hidden selection:bg-indigo-500/30">
+  <div class="h-screen w-screen bg-zinc-900 text-zinc-100 flex font-sans overflow-hidden selection:bg-teal-500/30">
     
-    <!-- Top Navigation Bar -->
-    <header class="h-14 bg-gray-800/90 backdrop-blur border-b border-gray-700/50 flex items-center justify-between px-6 shadow-md z-10">
-      <div class="flex items-center space-x-3">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </div>
-        <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-400">
-          Log Visualizer
-        </h1>
+    <!-- Sidebar -->
+    <aside 
+      class="flex-shrink-0 transition-all duration-300 border-r border-zinc-800 overflow-hidden"
+      :class="isSidebarOpen ? 'w-80' : 'w-0'"
+    >
+      <div class="h-full w-80">
+        <Sidebar />
       </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
       
-      <div class="flex space-x-4 items-center text-sm text-gray-400">
+      <!-- Top Navigation Bar -->
+      <header class="h-14 flex items-center justify-between px-6 z-10 shrink-0">
+        <div class="flex items-center space-x-4">
+          <button 
+            @click="isSidebarOpen = !isSidebarOpen" 
+            class="text-zinc-400 hover:text-zinc-200 transition-colors p-1 rounded hover:bg-zinc-800"
+            title="Toggle Sidebar"
+          >
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          
+          <div v-if="store.currentTime !== null" class="text-sm">
+            Time: <span class="text-teal-400 font-mono">{{ store.currentTime.toFixed(3) }}s</span>
+          </div>
+        </div>
+        
+        <div class="flex space-x-4 items-center text-sm text-zinc-400">
         <button 
           @click="store.toggleSplitMode()" 
-          class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-gray-200 transition-colors flex items-center space-x-2"
+          class="px-3 py-1 bg-zinc-700 hover:bg-zinc-600 rounded text-zinc-200 transition-colors flex items-center space-x-2"
           title="Toggle Split Layout"
         >
           <svg v-if="store.splitMode === 'vertical'" class="w-4 h-4" fill="none" viewBox="0 0 24 24">
@@ -36,8 +54,8 @@
           :disabled="!store.hasCommands"
           class="px-3 py-1 rounded transition-colors flex items-center space-x-2"
           :class="[
-            !store.hasCommands ? 'bg-gray-800 text-gray-600 cursor-not-allowed' :
-            store.showCommands ? 'bg-indigo-600 hover:bg-indigo-500 text-gray-200' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+            !store.hasCommands ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' :
+            store.showCommands ? 'bg-teal-900 hover:bg-teal-700 text-teal-200' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
           ]"
           title="Toggle Command Markers"
         >
@@ -52,8 +70,8 @@
           :disabled="!store.hasEvents"
           class="px-3 py-1 rounded transition-colors flex items-center space-x-2"
           :class="[
-            !store.hasEvents ? 'bg-gray-800 text-gray-600 cursor-not-allowed' :
-            store.showEvents ? 'bg-indigo-600 hover:bg-indigo-500 text-gray-200' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+            !store.hasEvents ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' :
+            store.showEvents ? 'bg-teal-900 hover:bg-teal-700 text-teal-200' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
           ]"
           title="Toggle Event Markers"
         >
@@ -68,8 +86,8 @@
           :disabled="!store.hasVideos"
           class="px-3 py-1 rounded transition-colors flex items-center space-x-2"
           :class="[
-            !store.hasVideos ? 'bg-gray-800 text-gray-600 cursor-not-allowed' :
-            store.showVideoView ? 'bg-indigo-600 hover:bg-indigo-500 text-gray-200' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+            !store.hasVideos ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' :
+            store.showVideoView ? 'bg-teal-900 hover:bg-teal-700 text-teal-200' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
           ]"
           title="Toggle Video Panel"
         >
@@ -84,8 +102,8 @@
           :disabled="!store.hasInfo"
           class="px-3 py-1 rounded transition-colors flex items-center space-x-2"
           :class="[
-            !store.hasInfo ? 'bg-gray-800 text-gray-600 cursor-not-allowed' :
-            store.showInfoView ? 'bg-indigo-600 hover:bg-indigo-500 text-gray-200' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+            !store.hasInfo ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' :
+            store.showInfoView ? 'bg-teal-900 hover:bg-teal-700 text-teal-200' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
           ]"
           title="Toggle Drone Info"
         >
@@ -95,23 +113,11 @@
           <span>Info</span>
         </button>
 
-        <div v-if="store.currentTime !== null" class="ml-4">
-          Time: <span class="text-indigo-400 font-mono">{{ store.currentTime.toFixed(3) }}s</span>
-        </div>
       </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 flex overflow-hidden p-4 gap-4">
-      
-      <!-- Sidebar -->
-      <aside class="w-80 flex-shrink-0 transition-all duration-300">
-        <div class="h-full glass-panel overflow-hidden">
-          <Sidebar />
-        </div>
-      </aside>
-
-      <!-- Plot and Video Area -->
+    <!-- Plot and Video Area -->
+    <div class="flex-1 flex p-4 pt-0 gap-4 overflow-hidden">
       <div 
         class="flex-1 min-w-0 flex gap-4 transition-all duration-300"
         :class="store.splitMode === 'vertical' ? 'flex-row' : 'flex-col'"
@@ -127,7 +133,7 @@
           class="transition-all duration-300 flex gap-4"
           :class="store.splitMode === 'vertical' ? 'flex-col w-1/3 min-w-[300px]' : 'flex-row h-1/3 min-h-[250px] w-full'"
         >
-          <div v-if="store.showVideoView && store.selectedVideo" class="flex-1 min-h-[200px] min-w-[300px] bg-black rounded-xl overflow-hidden border border-gray-700/50 shadow-2xl relative">
+          <div v-if="store.showVideoView && store.selectedVideo" class="flex-1 min-h-[200px] min-w-[300px] bg-black rounded-xl overflow-hidden border border-[#2a2a2a] shadow-2xl relative">
             <VideoPlayer />
           </div>
           <div v-if="store.showInfoView" class="flex-1 min-h-[200px] min-w-[300px] relative">
@@ -135,13 +141,16 @@
           </div>
         </section>
       </div>
-
+    </div>
     </main>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { store } from './store';
+
+const isSidebarOpen = ref(true);
 import Sidebar from './components/Sidebar.vue';
 import PlotArea from './components/PlotArea.vue';
 import VideoPlayer from './components/VideoPlayer.vue';
