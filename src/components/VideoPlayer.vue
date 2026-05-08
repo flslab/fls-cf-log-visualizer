@@ -26,7 +26,12 @@ let isVideoUpdatingStore = false;
 const onTimeUpdate = () => {
   if (videoPlayer.value && !videoPlayer.value.paused) {
     isVideoUpdatingStore = true;
-    store.currentTime = videoPlayer.value.currentTime;
+    let newTime = videoPlayer.value.currentTime;
+    if (store.selectedVideo && store.selectedVideo.video_start_time !== undefined) {
+      const t_abs = newTime + store.selectedVideo.video_start_time;
+      newTime = t_abs - store.minTime;
+    }
+    store.currentTime = newTime;
     setTimeout(() => { isVideoUpdatingStore = false; }, 50);
   }
 };
@@ -36,9 +41,16 @@ const onPause = () => {};
 
 // Sync store time (from plot scrubbing) to video
 watch(() => store.currentTime, (newTime) => {
-  if (!isVideoUpdatingStore && videoPlayer.value) {
-    if (Math.abs(videoPlayer.value.currentTime - newTime) > 0.1) {
-      videoPlayer.value.currentTime = newTime;
+  if (!isVideoUpdatingStore && videoPlayer.value && newTime !== null) {
+    let videoTargetTime = newTime;
+    if (store.selectedVideo && store.selectedVideo.video_start_time !== undefined) {
+      const t_abs = newTime + store.minTime;
+      videoTargetTime = t_abs - store.selectedVideo.video_start_time;
+    }
+    if (Math.abs(videoPlayer.value.currentTime - videoTargetTime) > 0.1) {
+      if (videoTargetTime >= 0 && videoTargetTime <= videoPlayer.value.duration) {
+        videoPlayer.value.currentTime = videoTargetTime;
+      }
     }
   }
 });

@@ -37,6 +37,28 @@ export const store = reactive({
     return false;
   },
 
+  get minTime() {
+    let mTime = Infinity;
+    for (const droneId in this.drones) {
+      const drone = this.drones[droneId];
+      if (drone.mission_start_time !== undefined && drone.mission_start_time !== null) {
+        mTime = Math.min(mTime, drone.mission_start_time);
+      } else if (drone.start_times && drone.start_times.length > 0) {
+        mTime = Math.min(mTime, drone.start_times[0]);
+      } else {
+        this.selectedParams.forEach(p => {
+          if (p.droneId === droneId) {
+            const param = drone.parameters[p.paramId];
+            if (param && param.time && param.time.length > 0) {
+              mTime = Math.min(mTime, param.time[0]);
+            }
+          }
+        });
+      }
+    }
+    return mTime === Infinity ? 0 : mTime;
+  },
+
   clear() {
     this.drones = {};
     this.videos = [];

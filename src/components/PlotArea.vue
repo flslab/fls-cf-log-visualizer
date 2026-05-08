@@ -60,31 +60,7 @@ const chartOption = computed(() => {
   const series = [];
   const legendData = [];
   
-  // To sync video relative time vs absolute timestamp
-  // We need the minimum time across all plotted data to zero it out, or use absolute time.
-  // The video player currentTime starts at 0. So we need to map plot time.
-  // Let's find the absolute start time across all drones.
-  let minTime = Infinity;
-  for (const droneId in store.drones) {
-    const drone = store.drones[droneId];
-    if (drone.mission_start_time !== undefined && drone.mission_start_time !== null) {
-      minTime = Math.min(minTime, drone.mission_start_time);
-    } else if (drone.start_times && drone.start_times.length > 0) {
-      minTime = Math.min(minTime, drone.start_times[0]);
-    } else {
-      // Find min time from selected params
-      store.selectedParams.forEach(p => {
-        if (p.droneId === droneId) {
-          const param = drone.parameters[p.paramId];
-          if (param && param.time.length > 0) {
-            minTime = Math.min(minTime, param.time[0]);
-          }
-        }
-      });
-    }
-  }
-  
-  if (minTime === Infinity) minTime = 0;
+  const minTime = store.minTime;
 
   store.selectedParams.forEach(selection => {
     const drone = store.drones[selection.droneId];
