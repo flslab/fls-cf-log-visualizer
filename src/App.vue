@@ -113,6 +113,20 @@
           <span>Info</span>
         </button>
 
+        <button 
+          @click="store.toggleShowStatsView()" 
+          class="px-3 py-1 rounded transition-colors flex items-center space-x-2"
+          :class="[
+            store.showStatsView ? 'bg-teal-900 hover:bg-teal-700 text-teal-200' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
+          ]"
+          title="Toggle Statistics"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <span>Stats</span>
+        </button>
+
       </div>
     </header>
 
@@ -129,7 +143,7 @@
 
         <!-- Side Panels Area (Conditional) -->
         <section 
-          v-if="store.showVideoView || store.showInfoView" 
+          v-if="store.showVideoView || store.showInfoView || store.showStatsView" 
           class="transition-all duration-300 flex gap-4"
           :class="store.splitMode === 'vertical' ? 'flex-col w-1/3 min-w-[300px]' : 'flex-row h-1/3 min-h-[250px] w-full'"
         >
@@ -138,6 +152,9 @@
           </div>
           <div v-if="store.showInfoView" class="flex-1 min-h-[200px] min-w-[300px] relative">
             <InfoPanel />
+          </div>
+          <div v-if="store.showStatsView" class="flex-1 min-h-[200px] min-w-[300px] relative">
+            <StatsPanel />
           </div>
         </section>
       </div>
@@ -155,6 +172,7 @@ import Sidebar from './components/Sidebar.vue';
 import PlotArea from './components/PlotArea.vue';
 import VideoPlayer from './components/VideoPlayer.vue';
 import InfoPanel from './components/InfoPanel.vue';
+import StatsPanel from './components/StatsPanel.vue';
 </script>
 
 <style>

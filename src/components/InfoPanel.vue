@@ -1,18 +1,15 @@
 <template>
-  <div class="h-full w-full bg-zinc-800/80 backdrop-blur-md rounded-xl border border-zinc-700/50 shadow-xl overflow-y-auto p-4 custom-scrollbar text-sm text-zinc-300">
-    <h2 class="text-lg font-semibold text-zinc-100 mb-4 flex items-center gap-2">
-      <svg class="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+  <div class="h-full w-full bg-zinc-800/80 rounded-xl border border-zinc-700/50 shadow-xl overflow-y-auto p-4 text-sm text-zinc-300">
+    <h3 class="font-semibold text-zinc-100 mb-4 flex items-center gap-2">
       Controller Configurations
-    </h2>
+    </h3>
 
     <div v-if="Object.keys(store.drones).length === 0" class="text-zinc-500 italic">
       No data loaded.
     </div>
     
     <div v-else class="space-y-6">
-      <div v-for="(drone, droneId) in store.drones" :key="droneId" class="bg-zinc-900/50 rounded-lg p-4 border border-zinc-700/50">
+      <div v-for="(drone, droneId) in store.drones" :key="droneId" class="bg-zinc-900 rounded-lg p-4 border border-zinc-700/50">
         <h3 class="text-md font-bold text-teal-300 mb-3 border-b border-zinc-700 pb-2">
           {{ droneId }}
         </h3>

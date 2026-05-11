@@ -54,6 +54,20 @@ const onAxisPointer = (event) => {
   }
 };
 
+const onDataZoom = (event) => {
+  let start = 0;
+  let end = 100;
+  if (event.batch) {
+    start = event.batch[0].start !== undefined ? event.batch[0].start : 0;
+    end = event.batch[0].end !== undefined ? event.batch[0].end : 100;
+  } else {
+    start = event.start !== undefined ? event.start : 0;
+    end = event.end !== undefined ? event.end : 100;
+  }
+  store.timeRangePercent = [start, end];
+  console.log(store.timeRangePercent);
+};
+
 const chartOption = computed(() => {
   if (store.selectedParams.length === 0) return {};
 

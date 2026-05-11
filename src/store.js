@@ -11,6 +11,8 @@ export const store = reactive({
   showVideoView: false, // Show video
   showEvents: true, // Show event linemarkers
   showInfoView: false, // Show args/git_ver view
+  showStatsView: false, // Show statistics view
+  timeRangePercent: [0, 100], // [start, end] percentage of visible x-axis
   
   get hasCommands() {
     for (const d in this.drones) {
@@ -59,6 +61,26 @@ export const store = reactive({
     return mTime === Infinity ? 0 : mTime;
   },
 
+  get maxTime() {
+    let mTime = -Infinity;
+    for (const droneId in this.drones) {
+      const drone = this.drones[droneId];
+      if (drone.stop_times && drone.stop_times.length > 0) {
+        mTime = Math.max(mTime, drone.stop_times[drone.stop_times.length - 1]);
+      } else {
+        this.selectedParams.forEach(p => {
+          if (p.droneId === droneId) {
+            const param = drone.parameters[p.paramId];
+            if (param && param.time && param.time.length > 0) {
+              mTime = Math.max(mTime, param.time[param.time.length - 1]);
+            }
+          }
+        });
+      }
+    }
+    return mTime === -Infinity ? 0 : mTime;
+  },
+
   clear() {
     this.drones = {};
     this.videos = [];
@@ -67,6 +89,8 @@ export const store = reactive({
     this.currentTime = null;
     this.showVideoView = false;
     this.showInfoView = false;
+    this.showStatsView = false;
+    this.timeRangePercent = [0, 100];
   },
 
   clearSelectedParams() {
@@ -87,6 +111,10 @@ export const store = reactive({
 
   toggleShowInfoView() {
     this.showInfoView = !this.showInfoView;
+  },
+
+  toggleShowStatsView() {
+    this.showStatsView = !this.showStatsView;
   },
 
   toggleShowVideoView() {
