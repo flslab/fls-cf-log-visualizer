@@ -34,6 +34,10 @@
             <span class="text-zinc-500">Std</span>
             <span class="text-zinc-200">{{ stat.std.toFixed(4) }}</span>
           </div>
+          <div class="flex justify-between items-center bg-zinc-800/50 px-2 py-1 rounded col-span-2">
+            <span class="text-zinc-500">Data Rate (Hz)</span>
+            <span class="text-zinc-200">{{ stat.rate.toFixed(1) }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -114,13 +118,18 @@ const stats = computed(() => {
     
     const std = Math.sqrt(sumSqDiff / filteredData.length);
 
+    // Calculate rate (points per second)
+    const duration = end - start;
+    const rate = duration > 0 ? (filteredData.length / duration) : 0;
+
     result.push({
       name: `${selection.droneId} - ${param.name}`,
       color: selection.color,
       min,
       max,
       avg,
-      std
+      std,
+      rate
     });
   });
 
