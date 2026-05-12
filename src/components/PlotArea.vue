@@ -18,7 +18,7 @@
 import { computed, ref, watch } from 'vue';
 import { use } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
-import { LineChart } from 'echarts/charts';
+import { LineChart, ScatterChart } from 'echarts/charts';
 import {
   TitleComponent,
   TooltipComponent,
@@ -33,6 +33,7 @@ import { store } from '../store';
 use([
   CanvasRenderer,
   LineChart,
+  ScatterChart,
   TitleComponent,
   TooltipComponent,
   GridComponent,
@@ -184,8 +185,9 @@ const chartOption = computed(() => {
 
     series.push({
       name: seriesName,
-      type: 'line',
-      showSymbol: false,
+      type: store.showPlotAsDots ? 'scatter' : 'line',
+      showSymbol: store.showPlotAsDots,
+      symbolSize: store.showPlotAsDots ? 3 : 0,
       data: data,
       itemStyle: { color: selection.color },
       markLine: markLineData.length > 0 ? {

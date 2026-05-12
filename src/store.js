@@ -12,6 +12,7 @@ export const store = reactive({
   showEvents: true, // Show event linemarkers
   showInfoView: false, // Show args/git_ver view
   showStatsView: false, // Show statistics view
+  showPlotAsDots: false, // Show plot as scattered dots instead of lines
   timeRangePercent: [0, 100], // [start, end] percentage of visible x-axis
   
   get hasCommands() {
@@ -115,6 +116,10 @@ export const store = reactive({
 
   toggleShowStatsView() {
     this.showStatsView = !this.showStatsView;
+  },
+
+  toggleShowPlotAsDots() {
+    this.showPlotAsDots = !this.showPlotAsDots;
   },
 
   toggleShowVideoView() {
