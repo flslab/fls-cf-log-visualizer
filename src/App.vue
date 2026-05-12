@@ -19,11 +19,16 @@
         <div class="flex items-center space-x-4">
           <button 
             @click="isSidebarOpen = !isSidebarOpen" 
-            class="text-zinc-400 hover:text-zinc-200 transition-colors p-1 rounded hover:bg-zinc-800"
-            title="Toggle Sidebar"
+            class="text-zinc-400 hover:text-zinc-200 transition-colors p-1.5 rounded hover:bg-zinc-800 flex items-center justify-center"
+            :title="isSidebarOpen ? 'Close Sidebar' : 'Open Sidebar'"
           >
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            <svg v-if="isSidebarOpen" class="w-5 h-5" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" />
+              <path d="M3 6a2 2 0 0 1 2-2h4v16H5a2 2 0 0 1-2-2V6z" fill="currentColor" />
+            </svg>
+            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" />
+              <path d="M9 4v16" stroke="currentColor" stroke-width="2" />
             </svg>
           </button>
           
@@ -33,21 +38,39 @@
         </div>
         
         <div class="flex space-x-4 items-center text-sm text-zinc-400">
-        <button 
-          @click="store.toggleSplitMode()" 
-          class="px-3 py-1 bg-zinc-700 hover:bg-zinc-600 rounded text-zinc-200 transition-colors flex items-center space-x-2"
-          title="Toggle Split Layout"
-        >
-          <svg v-if="store.splitMode === 'vertical'" class="w-4 h-4" fill="none" viewBox="0 0 24 24">
-            <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" />
-            <path d="M3 6a2 2 0 0 1 2-2h7v16H5a2 2 0 0 1-2-2V6z" fill="currentColor" />
-          </svg>
-          <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24">
-            <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" />
-            <path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6H3V6z" fill="currentColor" />
-          </svg>
-          <span>{{ store.splitMode === 'vertical' ? 'Vertical Split' : 'Horizontal Split' }}</span>
-        </button>
+          
+          <button 
+            @click="store.toggleShowPlotAsDots()" 
+            class="p-1.5 rounded transition-colors flex items-center justify-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200"
+            :title="store.showPlotAsDots ? 'Current: Dots. Click to switch to Lines.' : 'Current: Lines. Click to switch to Dots.'"
+          >
+            <svg v-if="!store.showPlotAsDots" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4-8 4 4 8-8" />
+            </svg>
+            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <circle cx="6" cy="16" r="2.5" fill="currentColor" stroke="none" />
+              <circle cx="10" cy="8" r="2.5" fill="currentColor" stroke="none" />
+              <circle cx="14" cy="12" r="2.5" fill="currentColor" stroke="none" />
+              <circle cx="22" cy="4" r="2.5" fill="currentColor" stroke="none" />
+            </svg>
+          </button>
+
+          <button 
+            @click="store.toggleSplitMode()" 
+            class="p-1.5 rounded transition-colors flex items-center justify-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200"
+            :title="store.splitMode === 'vertical' ? 'Current: Vertical Split. Click to switch to Horizontal Split.' : 'Current: Horizontal Split. Click to switch to Vertical Split.'"
+          >
+            <svg v-if="store.splitMode === 'vertical'" class="w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" />
+              <path d="M12 2v20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" />
+              <path d="M1 12h22" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
+
+          <div class="h-6 w-px bg-zinc-700 mr-4"></div>
 
         <button 
           @click="store.toggleShowCommands()" 
