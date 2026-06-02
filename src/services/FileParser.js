@@ -173,14 +173,28 @@ export class FileParser {
     }
     
     if (json.frames && json.frames.length > 0) {
+      // Detect format: new format has poses array per frame, old format has tvec directly on frame
+      const isNewFormat = json.frames[0].poses !== undefined;
+
+      // Filter to frames that actually have pose data
+      const validFrames = isNewFormat
+        ? json.frames.filter(f => f.poses && f.poses.length > 0)
+        : json.frames.filter(f => f.tvec);
+
+      if (validFrames.length === 0) return;
+
       // time is in milliseconds in tracker json
-      const timeArr = json.frames.map(f => f.time / 1000.0);
-      const tvecX = json.frames.map(f => f.tvec[0]);
-      const tvecY = json.frames.map(f => f.tvec[1]);
-      const tvecZ = json.frames.map(f => f.tvec[2]);
-      const yprY = json.frames.map(f => f.yaw_pitch_roll[0]);
-      const yprP = json.frames.map(f => f.yaw_pitch_roll[1]);
-      const yprR = json.frames.map(f => f.yaw_pitch_roll[2]);
+      const timeArr = validFrames.map(f => f.time / 1000.0);
+
+      // Extract tvec and yaw_pitch_roll from the appropriate location
+      const getPose = isNewFormat ? (f => f.poses[0]) : (f => f);
+
+      const tvecX = validFrames.map(f => getPose(f).tvec[0]);
+      const tvecY = validFrames.map(f => getPose(f).tvec[1]);
+      const tvecZ = validFrames.map(f => getPose(f).tvec[2]);
+      const yprY = validFrames.map(f => getPose(f).yaw_pitch_roll[0]);
+      const yprP = validFrames.map(f => getPose(f).yaw_pitch_roll[1]);
+      const yprR = validFrames.map(f => getPose(f).yaw_pitch_roll[2]);
 
       droneData.parameters['Tracker.tvecX'] = { group: 'Tracker', name: 'tvecX', time: timeArr, data: tvecX, unit: 'm' };
       droneData.parameters['Tracker.tvecY'] = { group: 'Tracker', name: 'tvecY', time: timeArr, data: tvecY, unit: 'm' };
