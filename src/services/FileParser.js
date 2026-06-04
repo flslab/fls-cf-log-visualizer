@@ -132,12 +132,55 @@ export class FileParser {
       }
     }
 
-    // 3. Process commands into pseudo-parameters
+    // 3. Process commands into pseudo-parameters and argument parameters
     if (json.commands && json.commands.length > 0) {
       const groups = new Set();
       json.commands.forEach(cmd => {
         if (cmd.name) {
-          groups.add(cmd.name.split('.')[0]);
+          const groupName = cmd.name.split('.')[0];
+          groups.add(groupName);
+
+          const cmdName = cmd.name.split('.').pop();
+          
+          if (cmd.args && cmd.args.length > 0) {
+            cmd.args.forEach((arg, index) => {
+              if (typeof arg === 'number') {
+                const paramKey = `Commands.${cmd.name}[${index}]`;
+                if (!droneData.parameters[paramKey]) {
+                  droneData.parameters[paramKey] = {
+                    group: `Commands.${groupName}`,
+                    name: `${cmdName}[${index}]`,
+                    time: [],
+                    data: [],
+                    unit: '',
+                    isCommandArg: true
+                  };
+                }
+                droneData.parameters[paramKey].time.push(cmd.time);
+                droneData.parameters[paramKey].data.push(arg);
+              }
+            });
+          }
+
+          if (cmd.kwargs) {
+            for (const [k, v] of Object.entries(cmd.kwargs)) {
+              if (typeof v === 'number') {
+                const paramKey = `Commands.${cmd.name}.${k}`;
+                if (!droneData.parameters[paramKey]) {
+                  droneData.parameters[paramKey] = {
+                    group: `Commands.${groupName}`,
+                    name: `${cmdName}.${k}`,
+                    time: [],
+                    data: [],
+                    unit: '',
+                    isCommandArg: true
+                  };
+                }
+                droneData.parameters[paramKey].time.push(cmd.time);
+                droneData.parameters[paramKey].data.push(v);
+              }
+            }
+          }
         }
       });
       groups.forEach(group => {
