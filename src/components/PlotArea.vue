@@ -187,7 +187,7 @@ const chartOption = computed(() => {
       name: seriesName,
       type: (store.showPlotAsDots || param.isCommandArg) ? 'scatter' : 'line',
       showSymbol: (store.showPlotAsDots || param.isCommandArg),
-      symbolSize: (store.showPlotAsDots || param.isCommandArg) ? 5 : 0,
+      symbolSize: (store.showPlotAsDots || param.isCommandArg) ? 2 : 0,
       data: data,
       itemStyle: { color: selection.color },
       markLine: markLineData.length > 0 ? {

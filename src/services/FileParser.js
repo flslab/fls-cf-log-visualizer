@@ -245,6 +245,20 @@ export class FileParser {
       droneData.parameters['Tracker.yaw'] = { group: 'Tracker', name: 'yaw', time: timeArr, data: yprY, unit: 'rad' };
       droneData.parameters['Tracker.pitch'] = { group: 'Tracker', name: 'pitch', time: timeArr, data: yprP, unit: 'rad' };
       droneData.parameters['Tracker.roll'] = { group: 'Tracker', name: 'roll', time: timeArr, data: yprR, unit: 'rad' };
+
+      // Include filtered tvec if present on poses
+      const hasFiltered = validFrames.some(f => getPose(f).tvec_filtered !== undefined);
+      if (hasFiltered) {
+        const filteredFrames = validFrames.filter(f => getPose(f).tvec_filtered !== undefined);
+        const filteredTime = filteredFrames.map(f => f.time / 1000.0);
+        const filteredX = filteredFrames.map(f => getPose(f).tvec_filtered[0]);
+        const filteredY = filteredFrames.map(f => getPose(f).tvec_filtered[1]);
+        const filteredZ = filteredFrames.map(f => getPose(f).tvec_filtered[2]);
+
+        droneData.parameters['Tracker.tvecX_filtered'] = { group: 'Tracker', name: 'tvecX_filtered', time: filteredTime, data: filteredX, unit: 'm' };
+        droneData.parameters['Tracker.tvecY_filtered'] = { group: 'Tracker', name: 'tvecY_filtered', time: filteredTime, data: filteredY, unit: 'm' };
+        droneData.parameters['Tracker.tvecZ_filtered'] = { group: 'Tracker', name: 'tvecZ_filtered', time: filteredTime, data: filteredZ, unit: 'm' };
+      }
     }
   }
 }
