@@ -38,6 +38,14 @@
             <span class="text-zinc-500">Data Rate (Hz)</span>
             <span class="text-zinc-200">{{ stat.rate.toFixed(1) }}</span>
           </div>
+          <div v-if="stat.dominantFreq !== null" class="flex justify-between items-center bg-violet-900/30 px-2 py-1 rounded border border-violet-800/30">
+            <span class="text-violet-400">Dom. Freq</span>
+            <span class="text-violet-200">{{ stat.dominantFreq.toFixed(1) }} Hz</span>
+          </div>
+          <div v-if="stat.rmsVibration !== null" class="flex justify-between items-center bg-violet-900/30 px-2 py-1 rounded border border-violet-800/30">
+            <span class="text-violet-400">RMS Vib.</span>
+            <span class="text-violet-200">{{ stat.rmsVibration.toFixed(4) }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -47,6 +55,7 @@
 <script setup>
 import { computed } from 'vue';
 import { store } from '../store';
+import { computeFFT } from '../services/FFTService';
 
 const timeWindow = computed(() => {
   let pMin = Infinity;
@@ -89,9 +98,11 @@ const stats = computed(() => {
     if (!param || !param.time || !param.data) return;
 
     // Filter data within the current time window
+    const filteredTime = [];
     const filteredData = [];
     for (let i = 0; i < param.time.length; i++) {
       if (param.time[i] >= start && param.time[i] <= end) {
+        filteredTime.push(param.time[i]);
         filteredData.push(param.data[i]);
       }
     }
@@ -122,6 +133,21 @@ const stats = computed(() => {
     const duration = end - start;
     const rate = duration > 0 ? (filteredData.length / duration) : 0;
 
+    // Compute FFT for dominant frequency and RMS
+    let dominantFreq = null;
+    let rmsVibration = null;
+    if (filteredData.length >= 256) {
+      const windowSize = Math.min(store.fftWindowSize, filteredData.length);
+      // Find largest power-of-2 <= windowSize
+      let fftSize = 1;
+      while (fftSize * 2 <= windowSize) fftSize *= 2;
+      const fftResult = computeFFT(filteredTime, filteredData, fftSize);
+      if (fftResult) {
+        dominantFreq = fftResult.dominantFreq;
+        rmsVibration = fftResult.rmsVibration;
+      }
+    }
+
     result.push({
       name: `${selection.droneId} - ${param.name}`,
       color: selection.color,
@@ -129,7 +155,9 @@ const stats = computed(() => {
       max,
       avg,
       std,
-      rate
+      rate,
+      dominantFreq,
+      rmsVibration,
     });
   });
 

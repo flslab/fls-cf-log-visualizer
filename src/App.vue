@@ -150,6 +150,22 @@
           <span>Stats</span>
         </button>
 
+        <div class="h-6 w-px bg-zinc-700"></div>
+
+        <button 
+          @click="store.toggleShowFFTView()" 
+          class="px-3 py-1 rounded transition-colors flex items-center space-x-2"
+          :class="[
+            store.showFFTView ? 'bg-violet-900 hover:bg-violet-700 text-violet-200' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
+          ]"
+          title="Toggle Frequency Spectrum (FFT)"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 12c1-3 2-6 3-3s2 6 3 0 2-8 3-2 2 7 3 1 2-5 3-1 2 4 3 0" />
+          </svg>
+          <span>FFT</span>
+        </button>
+
       </div>
     </header>
 
@@ -159,9 +175,10 @@
         class="flex-1 min-w-0 flex gap-4 transition-all duration-300"
         :class="store.splitMode === 'vertical' ? 'flex-row' : 'flex-col'"
       >
-        <!-- Plot Area -->
+        <!-- Plot Area / FFT Area (full-area toggle) -->
         <section class="flex-1 min-w-0 transition-all duration-300">
-          <PlotArea />
+          <FFTPanel v-if="store.showFFTView" />
+          <PlotArea v-else />
         </section>
 
         <!-- Side Panels Area (Conditional) -->
@@ -196,6 +213,7 @@ import PlotArea from './components/PlotArea.vue';
 import VideoPlayer from './components/VideoPlayer.vue';
 import InfoPanel from './components/InfoPanel.vue';
 import StatsPanel from './components/StatsPanel.vue';
+import FFTPanel from './components/FFTPanel.vue';
 </script>
 
 <style>

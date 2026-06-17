@@ -14,6 +14,10 @@ export const store = reactive({
   showStatsView: false, // Show statistics view
   showPlotAsDots: false, // Show plot as scattered dots instead of lines
   timeRangePercent: [0, 100], // [start, end] percentage of visible x-axis
+  showFFTView: false, // Show FFT frequency spectrum (full-area mode, replaces time-domain)
+  fftWindowSize: 1024, // FFT window size (power of 2)
+  fftScaleLog: true, // true = dB scale, false = linear amplitude
+  fftStackMode: false, // false = overlay all params, true = stack vertically
   
   get hasCommands() {
     for (const d in this.drones) {
@@ -91,6 +95,10 @@ export const store = reactive({
     this.showVideoView = false;
     this.showInfoView = false;
     this.showStatsView = false;
+    this.showFFTView = false;
+    this.fftWindowSize = 1024;
+    this.fftScaleLog = true;
+    this.fftStackMode = false;
     this.timeRangePercent = [0, 100];
   },
 
@@ -124,6 +132,22 @@ export const store = reactive({
 
   toggleShowVideoView() {
     this.showVideoView = !this.showVideoView;
+  },
+
+  toggleShowFFTView() {
+    this.showFFTView = !this.showFFTView;
+  },
+
+  setFFTWindowSize(size) {
+    this.fftWindowSize = size;
+  },
+
+  toggleFFTScaleLog() {
+    this.fftScaleLog = !this.fftScaleLog;
+  },
+
+  toggleFFTStackMode() {
+    this.fftStackMode = !this.fftStackMode;
   },
 
   toggleParam(droneId, paramId) {
