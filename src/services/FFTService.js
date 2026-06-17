@@ -51,9 +51,9 @@ export function computeSampleRate(timeArray) {
 
   if (diffs.length === 0) return 0;
 
-  diffs.sort((a, b) => a - b);
-  const medianDt = diffs[Math.floor(diffs.length / 2)];
-  return 1.0 / medianDt;
+  const sum = diffs.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+  const meanDt = sum / diffs.length;
+  return 1.0 / meanDt;
 }
 
 /**
