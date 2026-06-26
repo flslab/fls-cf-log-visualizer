@@ -55,6 +55,48 @@
           </svg>
           <span>{{ store.fftStackMode ? 'Stacked' : 'Overlay' }}</span>
         </button>
+
+        <div class="h-4 w-px bg-zinc-700"></div>
+
+        <!-- Time Range Toggle -->
+        <button
+          @click="toggleTimeRange"
+          class="px-2 py-0.5 rounded text-xs transition-colors flex items-center space-x-1"
+          :class="store.fftTimeRangeEnabled 
+            ? 'bg-amber-900/60 text-amber-300 hover:bg-amber-800/60' 
+            : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'"
+          title="Specify a custom time range for FFT analysis"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>Range</span>
+        </button>
+
+        <!-- Time Range Inputs (shown when enabled) -->
+        <template v-if="store.fftTimeRangeEnabled">
+          <div class="flex items-center space-x-1.5">
+            <span class="text-xs text-zinc-500">From:</span>
+            <input 
+              type="number"
+              :value="rangeStartInput"
+              @change="onRangeStartChange($event.target.value)"
+              step="0.1"
+              class="bg-zinc-800 border border-zinc-700 rounded px-2 py-0.5 text-xs text-zinc-300 w-20 focus:outline-none focus:border-amber-500 tabular-nums"
+              title="Start time in seconds"
+            />
+            <span class="text-xs text-zinc-500">To:</span>
+            <input 
+              type="number"
+              :value="rangeEndInput"
+              @change="onRangeEndChange($event.target.value)"
+              step="0.1"
+              class="bg-zinc-800 border border-zinc-700 rounded px-2 py-0.5 text-xs text-zinc-300 w-20 focus:outline-none focus:border-amber-500 tabular-nums"
+              title="End time in seconds"
+            />
+            <span class="text-xs text-zinc-500 font-mono">s</span>
+          </div>
+        </template>
       </div>
 
       <div class="text-xs text-zinc-500 font-mono">
@@ -88,7 +130,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { use } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
 import { LineChart } from 'echarts/charts';
@@ -145,6 +187,23 @@ function colorWithAlpha(color, alpha) {
 /**
  * Compute the visible time window from store state (same logic as StatsPanel).
  */
+/**
+ * Earliest absolute timestamp across all selected parameters.
+ * Used as the zero-reference for relative FFT range inputs.
+ */
+const dataStartTime = computed(() => {
+  let pMin = Infinity;
+  store.selectedParams.forEach(selection => {
+    const drone = store.drones[selection.droneId];
+    if (!drone) return;
+    const param = drone.parameters[selection.paramId];
+    if (param && param.time && param.time.length > 0) {
+      pMin = Math.min(pMin, param.time[0]);
+    }
+  });
+  return pMin === Infinity ? store.minTime : pMin;
+});
+
 const timeWindow = computed(() => {
   let pMin = Infinity;
   let pMax = -Infinity;
@@ -175,11 +234,55 @@ const timeWindow = computed(() => {
 });
 
 /**
+ * Local refs for the range input fields (relative to plot start, in seconds).
+ */
+const rangeStartInput = ref(0);
+const rangeEndInput = ref(0);
+
+// Sync local inputs when store values change externally (convert absolute → relative)
+watch(() => store.fftTimeRange, (newVal) => {
+  const offset = dataStartTime.value;
+  rangeStartInput.value = parseFloat((newVal[0] - offset).toFixed(3));
+  rangeEndInput.value = parseFloat((newVal[1] - offset).toFixed(3));
+}, { immediate: true });
+
+function toggleTimeRange() {
+  store.toggleFFTTimeRange();
+  // When first enabled, initialize to the full data bounds
+  if (store.fftTimeRangeEnabled) {
+    const tw = timeWindow.value;
+    const offset = dataStartTime.value;
+    store.setFFTTimeRange(tw.start, tw.end);
+    rangeStartInput.value = parseFloat((tw.start - offset).toFixed(3));
+    rangeEndInput.value = parseFloat((tw.end - offset).toFixed(3));
+  }
+}
+
+function onRangeStartChange(val) {
+  const v = parseFloat(val);
+  if (!isNaN(v)) {
+    rangeStartInput.value = v;
+    store.setFFTTimeRange(v + dataStartTime.value, store.fftTimeRange[1]);
+  }
+}
+
+function onRangeEndChange(val) {
+  const v = parseFloat(val);
+  if (!isNaN(v)) {
+    rangeEndInput.value = v;
+    store.setFFTTimeRange(store.fftTimeRange[0], v + dataStartTime.value);
+  }
+}
+
+/**
  * Filter data to the visible time window and run FFT for each selected parameter.
  */
 const fftResults = computed(() => {
   const results = [];
-  const { start, end } = timeWindow.value;
+  const { start: twStart, end: twEnd } = timeWindow.value;
+  // Use custom FFT range if enabled, otherwise use the visible time window
+  const start = store.fftTimeRangeEnabled ? store.fftTimeRange[0] : twStart;
+  const end = store.fftTimeRangeEnabled ? store.fftTimeRange[1] : twEnd;
   const windowSize = store.fftWindowSize;
 
   store.selectedParams.forEach(selection => {
@@ -190,7 +293,7 @@ const fftResults = computed(() => {
     // Skip pseudo-parameters (commands, events)
     if (param.isCommandGroup || param.isEventGroup || param.isCommandArg) return;
 
-    // Filter to visible time window
+    // Filter to the active time range
     const filteredTime = [];
     const filteredData = [];
     for (let i = 0; i < param.time.length; i++) {

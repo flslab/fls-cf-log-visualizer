@@ -18,6 +18,8 @@ export const store = reactive({
   fftWindowSize: 1024, // FFT window size (power of 2)
   fftScaleLog: true, // true = dB scale, false = linear amplitude
   fftStackMode: false, // false = overlay all params, true = stack vertically
+  fftTimeRangeEnabled: false, // When true, FFT uses custom time range instead of full data
+  fftTimeRange: [0, 0], // [startTime, endTime] in seconds for FFT range
   
   get hasCommands() {
     for (const d in this.drones) {
@@ -99,6 +101,8 @@ export const store = reactive({
     this.fftWindowSize = 1024;
     this.fftScaleLog = true;
     this.fftStackMode = false;
+    this.fftTimeRangeEnabled = false;
+    this.fftTimeRange = [0, 0];
     this.timeRangePercent = [0, 100];
   },
 
@@ -148,6 +152,14 @@ export const store = reactive({
 
   toggleFFTStackMode() {
     this.fftStackMode = !this.fftStackMode;
+  },
+
+  toggleFFTTimeRange() {
+    this.fftTimeRangeEnabled = !this.fftTimeRangeEnabled;
+  },
+
+  setFFTTimeRange(start, end) {
+    this.fftTimeRange = [start, end];
   },
 
   toggleParam(droneId, paramId) {
