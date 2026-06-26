@@ -150,6 +150,20 @@
           <span>Stats</span>
         </button>
 
+        <button 
+          @click="store.toggleShowScaleView()" 
+          class="px-3 py-1 rounded transition-colors flex items-center space-x-2"
+          :class="[
+            store.showScaleView ? 'bg-amber-900 hover:bg-amber-700 text-amber-200' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
+          ]"
+          title="Toggle Scaling"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m0 0l-4-4m4 4l4-4M6 3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6a3 3 0 013-3z" />
+          </svg>
+          <span>Scale</span>
+        </button>
+
         <div class="h-6 w-px bg-zinc-700"></div>
 
         <button 
@@ -183,7 +197,7 @@
 
         <!-- Side Panels Area (Conditional) -->
         <section 
-          v-if="store.showVideoView || store.showInfoView || store.showStatsView" 
+          v-if="store.showVideoView || store.showInfoView || store.showStatsView || store.showScaleView" 
           class="transition-all duration-300 flex gap-4"
           :class="store.splitMode === 'vertical' ? 'flex-col w-1/3 min-w-[300px]' : 'flex-row h-1/3 min-h-[250px] w-full'"
         >
@@ -195,6 +209,9 @@
           </div>
           <div v-if="store.showStatsView" class="flex-1 min-h-[200px] min-w-[300px] relative">
             <StatsPanel />
+          </div>
+          <div v-if="store.showScaleView" class="flex-1 min-h-[200px] min-w-[300px] relative">
+            <ScalePanel />
           </div>
         </section>
       </div>
@@ -213,6 +230,7 @@ import PlotArea from './components/PlotArea.vue';
 import VideoPlayer from './components/VideoPlayer.vue';
 import InfoPanel from './components/InfoPanel.vue';
 import StatsPanel from './components/StatsPanel.vue';
+import ScalePanel from './components/ScalePanel.vue';
 import FFTPanel from './components/FFTPanel.vue';
 </script>
 

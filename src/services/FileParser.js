@@ -34,7 +34,7 @@ export class FileParser {
           const text = await file.text();
           const json = JSON.parse(text);
           const droneId = json.args?.drone_id || file.name.split('_')[0];
-          
+
           if (!data.drones[droneId]) {
             data.drones[droneId] = {
               id: droneId,
@@ -77,7 +77,7 @@ export class FileParser {
     if (json.mission_start_time) droneData.mission_start_time = json.mission_start_time;
     if (json.start_times) droneData.start_times = json.start_times;
     else if (json.start_time) droneData.start_times.push(json.start_time);
-    
+
     if (json.stop_times) droneData.stop_times = json.stop_times;
     else if (json.stop_time) droneData.stop_times.push(json.stop_time);
 
@@ -92,14 +92,14 @@ export class FileParser {
         const logGroup = json[key];
         const timeArr = logGroup.time || [];
         const params = logGroup.params || {};
-        
+
         for (const paramKey in params) {
           const paramObj = params[paramKey];
           if (!paramObj.data) continue;
-          
+
           let dataArr = paramObj.data;
           const scale = paramObj.scale;
-          
+
           if (scale !== undefined && scale !== 1.0) {
             dataArr = dataArr.map(v => v * scale);
           }
@@ -125,10 +125,10 @@ export class FileParser {
       droneData.parameters['frames.tvecX'] = { group: 'frames', name: 'tvecX', time: timeArr, data: tvecX, unit: 'm' };
       droneData.parameters['frames.tvecY'] = { group: 'frames', name: 'tvecY', time: timeArr, data: tvecY, unit: 'm' };
       droneData.parameters['frames.tvecZ'] = { group: 'frames', name: 'tvecZ', time: timeArr, data: tvecZ, unit: 'm' };
-      
+
       if (json.frames[0].dist_sq !== undefined) {
-         const distSq = json.frames.map(f => f.dist_sq);
-         droneData.parameters['frames.dist_sq'] = { group: 'frames', name: 'dist_sq', time: timeArr, data: distSq, unit: 'm^2' };
+        const distSq = json.frames.map(f => f.dist_sq);
+        droneData.parameters['frames.dist_sq'] = { group: 'frames', name: 'dist_sq', time: timeArr, data: distSq, unit: 'm^2' };
       }
     }
 
@@ -141,7 +141,7 @@ export class FileParser {
           groups.add(groupName);
 
           const cmdName = cmd.name.split('.').pop();
-          
+
           if (cmd.args && cmd.args.length > 0) {
             cmd.args.forEach((arg, index) => {
               if (typeof arg === 'number') {
@@ -210,55 +210,67 @@ export class FileParser {
     return droneData;
   }
 
+  static flattenTrackerEntries(value, path = '') {
+    if (value === null || value === undefined) return [];
+
+    if (Array.isArray(value)) {
+      return value.flatMap((item, index) => {
+        const itemPath = path ? `${path}[${index}]` : `[${index}]`;
+        return this.flattenTrackerEntries(item, itemPath);
+      });
+    }
+
+    if (typeof value === 'object') {
+      return Object.entries(value).flatMap(([key, childValue]) => {
+        return this.flattenTrackerEntries(childValue, key);
+      });
+    }
+
+    if (typeof value === 'number') {
+      return [{ path, value }];
+    }
+
+    return [];
+  }
+
   static processTrackerLog(json, droneData) {
     if (json.config && json.config.video_start_time) {
       droneData.tracker_video_start_time = json.config.video_start_time;
     }
-    
-    if (json.frames && json.frames.length > 0) {
-      // Detect format: new format has poses array per frame, old format has tvec directly on frame
-      const isNewFormat = json.frames[0].poses !== undefined;
 
-      // Filter to frames that actually have pose data
-      const validFrames = isNewFormat
-        ? json.frames.filter(f => f.poses && f.poses.length > 0)
-        : json.frames.filter(f => f.tvec);
+    const frames = Array.isArray(json.frames) ? json.frames : [];
+    if (frames.length === 0) return;
 
-      if (validFrames.length === 0) return;
+    const seriesByPath = new Map();
 
-      // time is in milliseconds in tracker json
-      const timeArr = validFrames.map(f => f.time / 1000.0);
+    frames.forEach((frame) => {
+      if (!frame || typeof frame !== 'object') return;
 
-      // Extract tvec and yaw_pitch_roll from the appropriate location
-      const getPose = isNewFormat ? (f => f.poses[0]) : (f => f);
+      const timeSeconds = typeof frame.time === 'number' ? frame.time / 1000.0 : null;
+      if (timeSeconds === null) return;
 
-      const tvecX = validFrames.map(f => getPose(f).tvec[0]);
-      const tvecY = validFrames.map(f => getPose(f).tvec[1]);
-      const tvecZ = validFrames.map(f => getPose(f).tvec[2]);
-      const yprY = validFrames.map(f => getPose(f).yaw_pitch_roll[0]);
-      const yprP = validFrames.map(f => getPose(f).yaw_pitch_roll[1]);
-      const yprR = validFrames.map(f => getPose(f).yaw_pitch_roll[2]);
+      const entries = this.flattenTrackerEntries(frame);
+      entries.forEach(({ path, value }) => {
+        if (path === 'time') return;
 
-      droneData.parameters['Tracker.tvecX'] = { group: 'Tracker', name: 'tvecX', time: timeArr, data: tvecX, unit: 'm' };
-      droneData.parameters['Tracker.tvecY'] = { group: 'Tracker', name: 'tvecY', time: timeArr, data: tvecY, unit: 'm' };
-      droneData.parameters['Tracker.tvecZ'] = { group: 'Tracker', name: 'tvecZ', time: timeArr, data: tvecZ, unit: 'm' };
-      droneData.parameters['Tracker.yaw'] = { group: 'Tracker', name: 'yaw', time: timeArr, data: yprY, unit: 'rad' };
-      droneData.parameters['Tracker.pitch'] = { group: 'Tracker', name: 'pitch', time: timeArr, data: yprP, unit: 'rad' };
-      droneData.parameters['Tracker.roll'] = { group: 'Tracker', name: 'roll', time: timeArr, data: yprR, unit: 'rad' };
+        if (!seriesByPath.has(path)) {
+          seriesByPath.set(path, { group: 'Tracker', name: path, time: [], data: [] });
+        }
 
-      // Include filtered tvec if present on poses
-      const hasFiltered = validFrames.some(f => getPose(f).tvec_filtered !== undefined);
-      if (hasFiltered) {
-        const filteredFrames = validFrames.filter(f => getPose(f).tvec_filtered !== undefined);
-        const filteredTime = filteredFrames.map(f => f.time / 1000.0);
-        const filteredX = filteredFrames.map(f => getPose(f).tvec_filtered[0]);
-        const filteredY = filteredFrames.map(f => getPose(f).tvec_filtered[1]);
-        const filteredZ = filteredFrames.map(f => getPose(f).tvec_filtered[2]);
+        const series = seriesByPath.get(path);
+        series.time.push(timeSeconds);
+        series.data.push(value);
+      });
+    });
 
-        droneData.parameters['Tracker.tvecX_filtered'] = { group: 'Tracker', name: 'tvecX_filtered', time: filteredTime, data: filteredX, unit: 'm' };
-        droneData.parameters['Tracker.tvecY_filtered'] = { group: 'Tracker', name: 'tvecY_filtered', time: filteredTime, data: filteredY, unit: 'm' };
-        droneData.parameters['Tracker.tvecZ_filtered'] = { group: 'Tracker', name: 'tvecZ_filtered', time: filteredTime, data: filteredZ, unit: 'm' };
-      }
+    for (const [path, series] of seriesByPath.entries()) {
+      droneData.parameters[`Tracker.${path}`] = {
+        group: 'Tracker',
+        name: path,
+        time: series.time,
+        data: series.data,
+        unit: '',
+      };
     }
   }
 }

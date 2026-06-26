@@ -12,6 +12,7 @@ export const store = reactive({
   showEvents: true, // Show event linemarkers
   showInfoView: false, // Show args/git_ver view
   showStatsView: false, // Show statistics view
+  showScaleView: false, // Show scaling panel
   showPlotAsDots: false, // Show plot as scattered dots instead of lines
   timeRangePercent: [0, 100], // [start, end] percentage of visible x-axis
   showFFTView: false, // Show FFT frequency spectrum (full-area mode, replaces time-domain)
@@ -20,25 +21,25 @@ export const store = reactive({
   fftStackMode: false, // false = overlay all params, true = stack vertically
   fftTimeRangeEnabled: false, // When true, FFT uses custom time range instead of full data
   fftTimeRange: [0, 0], // [startTime, endTime] in seconds for FFT range
-  
+
   get hasCommands() {
     for (const d in this.drones) {
       if (this.drones[d].commands && this.drones[d].commands.length > 0) return true;
     }
     return false;
   },
-  
+
   get hasEvents() {
     for (const d in this.drones) {
       if (this.drones[d].events && this.drones[d].events.length > 0) return true;
     }
     return false;
   },
-  
+
   get hasVideos() {
     return this.videos && this.videos.length > 0;
   },
-  
+
   get hasInfo() {
     for (const d in this.drones) {
       if ((this.drones[d].args && Object.keys(this.drones[d].args).length > 0) || this.drones[d].git_ver) return true;
@@ -97,6 +98,7 @@ export const store = reactive({
     this.showVideoView = false;
     this.showInfoView = false;
     this.showStatsView = false;
+    this.showScaleView = false;
     this.showFFTView = false;
     this.fftWindowSize = 1024;
     this.fftScaleLog = true;
@@ -128,6 +130,10 @@ export const store = reactive({
 
   toggleShowStatsView() {
     this.showStatsView = !this.showStatsView;
+  },
+
+  toggleShowScaleView() {
+    this.showScaleView = !this.showScaleView;
   },
 
   toggleShowPlotAsDots() {
@@ -169,8 +175,13 @@ export const store = reactive({
     } else {
       // Assign a random distinct color
       const color = `hsl(${Math.random() * 360}, 70%, 50%)`;
-      this.selectedParams.push({ droneId, paramId, color });
+      this.selectedParams.push({ droneId, paramId, color, scale: 1 });
     }
+  },
+
+  getSelectionScale(droneId, paramId) {
+    const selection = this.selectedParams.find(p => p.droneId === droneId && p.paramId === paramId);
+    return selection?.scale ?? 1;
   },
 
   isParamSelected(droneId, paramId) {
