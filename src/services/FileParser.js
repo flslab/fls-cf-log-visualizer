@@ -207,6 +207,45 @@ export class FileParser {
       };
     }
 
+    // 5. Process any other keys that are arrays of objects with a 'time' property
+    const knownKeys = ['mission_start_time', 'start_times', 'start_time', 'stop_times', 'stop_time', 'commands', 'events', 'args', 'git_ver', 'frames'];
+    for (const key in json) {
+      if (knownKeys.includes(key) || key.startsWith('cf_') || key === 'cf') continue;
+
+      const groupData = json[key];
+      if (Array.isArray(groupData) && groupData.length > 0 && groupData[0] && typeof groupData[0] === 'object' && 'time' in groupData[0]) {
+        const seriesByPath = new Map();
+
+        groupData.forEach(item => {
+          if (!item || typeof item !== 'object' || item.time === undefined) return;
+          const timeVal = item.time;
+
+          const entries = this.flattenTrackerEntries(item);
+          entries.forEach(({ path, value }) => {
+            if (path === 'time') return;
+
+            if (!seriesByPath.has(path)) {
+              seriesByPath.set(path, { group: key, name: path, time: [], data: [] });
+            }
+
+            const series = seriesByPath.get(path);
+            series.time.push(timeVal);
+            series.data.push(value);
+          });
+        });
+
+        for (const [path, series] of seriesByPath.entries()) {
+          droneData.parameters[`${key}.${path}`] = {
+            group: key,
+            name: path,
+            time: series.time,
+            data: series.data,
+            unit: '',
+          };
+        }
+      }
+    }
+
     return droneData;
   }
 
@@ -222,7 +261,8 @@ export class FileParser {
 
     if (typeof value === 'object') {
       return Object.entries(value).flatMap(([key, childValue]) => {
-        return this.flattenTrackerEntries(childValue, key);
+        const itemPath = path ? `${path}.${key}` : key;
+        return this.flattenTrackerEntries(childValue, itemPath);
       });
     }
 
