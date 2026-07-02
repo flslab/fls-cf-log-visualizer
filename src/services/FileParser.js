@@ -281,12 +281,50 @@ export class FileParser {
     const frames = Array.isArray(json.frames) ? json.frames : [];
     if (frames.length === 0) return;
 
+    // Detect if timestamps are in milliseconds or seconds
+    let maxTime = -Infinity;
+    let minTime = Infinity;
+    let validCount = 0;
+
+    for (const frame of frames) {
+      if (frame && typeof frame.time === 'number') {
+        const t = frame.time;
+        if (t > maxTime) maxTime = t;
+        if (t < minTime) minTime = t;
+        validCount++;
+      }
+    }
+
+    let isMs = true; // Default to milliseconds (original behavior)
+    if (validCount > 0) {
+      if (maxTime > 1.5e11) {
+        // Unix epoch in milliseconds (e.g., 1.7e12)
+        isMs = true;
+      } else if (maxTime > 1.5e9) {
+        // Unix epoch in seconds (e.g., 1.7e9)
+        isMs = false;
+      } else if (maxTime > 10000) {
+        // Relative milliseconds (more than 10 seconds duration)
+        isMs = true;
+      } else if (validCount >= 2) {
+        // Relative time, duration <= 10 seconds.
+        // A step of 0.5s or more is extremely slow for tracker data (<= 2 Hz).
+        // If avgStep >= 0.5, the timestamps are almost certainly in milliseconds.
+        const avgStep = (maxTime - minTime) / (validCount - 1);
+        isMs = avgStep >= 0.5;
+      } else {
+        // Single frame, default to milliseconds unless maxTime is <= 1000
+        isMs = maxTime > 1000;
+      }
+    }
+
+    const divisor = isMs ? 1000.0 : 1.0;
     const seriesByPath = new Map();
 
     frames.forEach((frame) => {
       if (!frame || typeof frame !== 'object') return;
 
-      const timeSeconds = typeof frame.time === 'number' ? frame.time / 1000.0 : null;
+      const timeSeconds = typeof frame.time === 'number' ? frame.time / divisor : null;
       if (timeSeconds === null) return;
 
       const entries = this.flattenTrackerEntries(frame);

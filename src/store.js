@@ -168,21 +168,26 @@ export const store = reactive({
     this.fftTimeRange = [start, end];
   },
 
-  toggleParam(droneId, paramId) {
-    const idx = this.selectedParams.findIndex(p => p.droneId === droneId && p.paramId === paramId);
-    if (idx >= 0) {
-      this.selectedParams.splice(idx, 1);
-    } else {
-      // Assign a random distinct color
-      const color = `hsl(${Math.random() * 360}, 70%, 50%)`;
-      this.selectedParams.push({ droneId, paramId, color, scale: 1 });
-    }
-  },
-
-  getSelectionScale(droneId, paramId) {
-    const selection = this.selectedParams.find(p => p.droneId === droneId && p.paramId === paramId);
-    return selection?.scale ?? 1;
-  },
+    toggleParam(droneId, paramId) {
+      const idx = this.selectedParams.findIndex(p => p.droneId === droneId && p.paramId === paramId);
+      if (idx >= 0) {
+        this.selectedParams.splice(idx, 1);
+      } else {
+        // Assign a random distinct color
+        const color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+        this.selectedParams.push({ droneId, paramId, color, scale: 1, offset: 0 });
+      }
+    },
+  
+    getSelectionScale(droneId, paramId) {
+      const selection = this.selectedParams.find(p => p.droneId === droneId && p.paramId === paramId);
+      return selection?.scale ?? 1;
+    },
+  
+    getSelectionOffset(droneId, paramId) {
+      const selection = this.selectedParams.find(p => p.droneId === droneId && p.paramId === paramId);
+      return selection?.offset ?? 0;
+    },
 
   isParamSelected(droneId, paramId) {
     return this.selectedParams.some(p => p.droneId === droneId && p.paramId === paramId);

@@ -296,10 +296,12 @@ const fftResults = computed(() => {
     // Filter to the active time range
     const filteredTime = [];
     const filteredData = [];
+    const scale = selection.scale ?? 1;
+    const offset = selection.offset ?? 0;
     for (let i = 0; i < param.time.length; i++) {
       if (param.time[i] >= start && param.time[i] <= end) {
         filteredTime.push(param.time[i]);
-        filteredData.push(param.data[i]);
+        filteredData.push((param.data[i] * scale) + offset);
       }
     }
 

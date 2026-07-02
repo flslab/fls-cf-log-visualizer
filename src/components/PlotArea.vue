@@ -85,9 +85,10 @@ const chartOption = computed(() => {
 
     const data = [];
     const scale = selection.scale ?? 1;
+    const offset = selection.offset ?? 0;
     for (let i = 0; i < param.time.length; i++) {
       // Relative time in seconds
-      data.push([param.time[i] - minTime, param.data[i] * scale]);
+      data.push([param.time[i] - minTime, (param.data[i] * scale) + offset]);
     }
 
     const seriesName = `${selection.droneId} - ${param.name}`;
